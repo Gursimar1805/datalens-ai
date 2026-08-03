@@ -119,6 +119,35 @@
   }
   @keyframes blink { 50% { opacity: 0; } }
 
+  #output h1, #output h2, #output h3 {
+    color: var(--accent);
+    margin: 0.6em 0 0.3em;
+    font-size: 1.1rem;
+  }
+  #output p { margin: 0 0 0.7em; }
+  #output ul, #output ol { margin: 0 0 0.7em 1.2em; padding: 0; }
+  #output li { margin-bottom: 0.3em; }
+  #output strong { color: #fff; }
+  #output table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.5em 0 1em;
+    font-size: 0.9rem;
+  }
+  #output th, #output td {
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    text-align: left;
+  }
+  #output th { background: #1f232c; }
+  #output code {
+    background: #0c0e12;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: ui-monospace, monospace;
+    font-size: 0.9em;
+  }
+
   footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding: 20px; }
 
   @media (max-width: 600px) {
@@ -127,6 +156,7 @@
     button { width: 100%; }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 </head>
 <body>
 
@@ -213,6 +243,7 @@
 
       requestStatus.textContent = 'Streaming response...';
       output.textContent = '';
+      let rawText = '';
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
@@ -230,11 +261,13 @@
           if (!line.startsWith('data: ')) continue;
           const payload = JSON.parse(line.slice(6));
           if (payload.error) {
-            output.textContent += `\n[Error: ${payload.error}]`;
+            rawText += `\n\n**[Error: ${payload.error}]**`;
+            output.innerHTML = marked.parse(rawText);
             requestStatus.textContent = 'Error during streaming.';
             requestStatus.classList.add('error');
           } else if (payload.text) {
-            output.textContent += payload.text;
+            rawText += payload.text;
+            output.innerHTML = marked.parse(rawText);
           } else if (payload.done) {
             requestStatus.textContent = 'Done.';
           }
