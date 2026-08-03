@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DataLens AI — Plain-Language Data Insights</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #2a2e38;
+    --text: #e8e9ec;
+    --muted: #9aa0ac;
+    --accent: #6c8cff;
+    --accent-dark: #4f6fe0;
+    --good: #4ade80;
+    --bad: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    padding: 24px 20px 12px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 { margin: 0 0 4px; font-size: 1.6rem; }
+  header p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+    display: grid;
+    gap: 20px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+  }
+
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+
+  textarea {
+    width: 100%;
+    min-height: 160px;
+    background: #0c0e12;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.9rem;
+    resize: vertical;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    background: #0c0e12;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+
+  button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 11px 20px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  button:hover { background: var(--accent-dark); }
+  button:disabled { background: #3a3f4b; cursor: not-allowed; }
+
+  .file-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-weight: 500;
+  }
+  .file-btn:hover { background: #1f232c; }
+
+  .status { font-size: 0.85rem; color: var(--muted); }
+  .status.error { color: var(--bad); }
+
+  #output {
+    white-space: pre-wrap;
+    line-height: 1.55;
+    font-size: 0.98rem;
+    min-height: 60px;
+  }
+  #output:empty::before {
+    content: "Your plain-language insights will stream in here.";
+    color: var(--muted);
+  }
+  .cursor {
+    display: inline-block;
+    width: 8px; height: 1.1em;
+    background: var(--accent);
+    margin-left: 2px;
+    animation: blink 1s step-start infinite;
+    vertical-align: text-bottom;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding: 20px; }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.3rem; }
+    .row { flex-direction: column; align-items: stretch; }
+    button { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📊 DataLens AI</h1>
+  <p>Paste a CSV or raw data, get plain-language insights — streamed live.</p>
+</header>
+
+<div class="container">
+  <div class="panel">
+    <label for="dataInput">Your data (CSV or free-form text)</label>
+    <textarea id="dataInput" placeholder="date,region,sales&#10;2024-01-01,North,1200&#10;2024-01-02,South,900&#10;..."></textarea>
+
+    <div class="row">
+      <input type="file" id="fileInput" accept=".csv,.txt" style="display:none" />
+      <button type="button" class="file-btn" id="uploadBtn">Upload CSV/TXT</button>
+      <span class="status" id="fileStatus"></span>
+    </div>
+
+    <div style="margin-top:14px;">
+      <label for="question">Optional question (e.g. "any seasonal trend?")</label>
+      <input type="text" id="question" placeholder="What would you like to know?" />
+    </div>
+
+    <div class="row">
+      <button id="analyzeBtn">Analyze with AI</button>
+      <span class="status" id="requestStatus"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <label>AI Insights</label>
+    <div id="output"></div>
+  </div>
+</div>
+
+<footer>DataLens AI — Vibe Coding Project · Built with Claude API + FastAPI + Docker + AWS</footer>
+
+<script>
+  // Backend URL: same-origin in production (frontend is served by FastAPI),
+  // override for local dev by editing this constant.
+  const API_BASE = window.location.origin;
+
+  const dataInput = document.getElementById('dataInput');
+  const fileInput = document.getElementById('fileInput');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const fileStatus = document.getElementById('fileStatus');
+  const questionInput = document.getElementById('question');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const requestStatus = document.getElementById('requestStatus');
+  const output = document.getElementById('output');
+
+  uploadBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const text = await file.text();
+    dataInput.value = text;
+    fileStatus.textContent = `Loaded ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+  });
+
+  analyzeBtn.addEventListener('click', async () => {
+    const dataText = dataInput.value.trim();
+    if (!dataText) {
+      requestStatus.textContent = 'Please paste or upload some data first.';
+      requestStatus.classList.add('error');
+      return;
+    }
+    requestStatus.classList.remove('error');
+    requestStatus.textContent = 'Contacting AI...';
+    analyzeBtn.disabled = true;
+    output.innerHTML = '<span class="cursor"></span>';
+
+    try {
+      const resp = await fetch(`${API_BASE}/api/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data_text: dataText, question: questionInput.value })
+      });
+
+      if (!resp.ok || !resp.body) {
+        throw new Error(`Server error: ${resp.status}`);
+      }
+
+      requestStatus.textContent = 'Streaming response...';
+      output.textContent = '';
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop(); // keep incomplete chunk in buffer
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const payload = JSON.parse(line.slice(6));
+          if (payload.error) {
+            output.textContent += `\n[Error: ${payload.error}]`;
+            requestStatus.textContent = 'Error during streaming.';
+            requestStatus.classList.add('error');
+          } else if (payload.text) {
+            output.textContent += payload.text;
+          } else if (payload.done) {
+            requestStatus.textContent = 'Done.';
+          }
+        }
+      }
+    } catch (err) {
+      requestStatus.textContent = `Failed: ${err.message}`;
+      requestStatus.classList.add('error');
+      output.textContent = 'Something went wrong. Please check that the backend is running and try again.';
+    } finally {
+      analyzeBtn.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>

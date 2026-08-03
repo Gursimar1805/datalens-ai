@@ -23,19 +23,23 @@ from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import anthropic
+from openai import OpenAI
 
 load_dotenv()
 
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
-MODEL_NAME = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-6")
+# LLM provider config. Defaults to NVIDIA NIM's free, OpenAI-compatible
+# endpoint. To use Anthropic or OpenAI directly instead, change LLM_BASE_URL
+# and LLM_API_KEY / MODEL_NAME accordingly (e.g. base_url=None + Anthropic SDK).
+LLM_API_KEY = os.environ.get("LLM_API_KEY") or os.environ.get("NVIDIA_API_KEY")
+LLM_BASE_URL = os.environ.get("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+MODEL_NAME = os.environ.get("MODEL_NAME", "meta/llama-3.1-70b-instruct")
 ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
 
-if not ANTHROPIC_API_KEY:
+if not LLM_API_KEY:
     # Fail loudly at startup rather than silently at request time.
-    print("WARNING: ANTHROPIC_API_KEY is not set. Set it in your .env file.")
+    print("WARNING: LLM_API_KEY is not set. Set it in your .env file.")
 
-client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+client = OpenAI(api_key=LLM_API_KEY, base_url=LLM_BASE_URL)
 
 app = FastAPI(title="DataLens AI")
 
@@ -97,17 +101,23 @@ async def stream_claude_response(data_text: str, question: str) -> AsyncGenerato
         user_content += f"\n\nSpecific question from the user: {question.strip()}"
 
     try:
-        with client.messages.stream(
+        stream = client.chat.completions.create(
             model=MODEL_NAME,
             max_tokens=1024,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_content}],
-        ) as stream:
-            for text in stream.text_stream:
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_content},
+            ],
+            stream=True,
+        )
+        for chunk in stream:
+            delta = chunk.choices[0].delta
+            text = getattr(delta, "content", None)
+            if text:
                 # Server-Sent-Events style chunks the frontend can read progressively
                 yield f"data: {json.dumps({'text': text})}\n\n"
         yield f"data: {json.dumps({'done': True})}\n\n"
-    except anthropic.APIError as e:
+    except Exception as e:
         yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
 
@@ -115,8 +125,8 @@ async def stream_claude_response(data_text: str, question: str) -> AsyncGenerato
 async def analyze(req: AnalyzeRequest):
     if not req.data_text or not req.data_text.strip():
         raise HTTPException(status_code=400, detail="data_text must not be empty")
-    if not ANTHROPIC_API_KEY:
-        raise HTTPException(status_code=500, detail="Server is missing ANTHROPIC_API_KEY")
+    if not LLM_API_KEY:
+        raise HTTPException(status_code=500, detail="Server is missing LLM_API_KEY")
 
     return StreamingResponse(
         stream_claude_response(req.data_text, req.question),
