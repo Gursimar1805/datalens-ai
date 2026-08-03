@@ -3,220 +3,430 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>DataLens AI — Plain-Language Data Insights</title>
+<title>DataLens AI — Bring your data into focus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <style>
   :root {
-    --bg: #0f1115;
-    --panel: #171a21;
-    --border: #2a2e38;
-    --text: #e8e9ec;
-    --muted: #9aa0ac;
-    --accent: #6c8cff;
-    --accent-dark: #4f6fe0;
-    --good: #4ade80;
-    --bad: #f87171;
+    --ink: #0b1420;
+    --panel: #101c2b;
+    --panel-raised: #142238;
+    --border: #22334a;
+    --paper: #eef2f6;
+    --muted: #7e94ab;
+    --brass: #d1a054;
+    --brass-bright: #e6b96e;
+    --teal: #5fd0c0;
+    --bad: #ef7d6c;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(209,160,84,0.06), transparent),
+      radial-gradient(900px 500px at 100% 0%, rgba(95,208,192,0.05), transparent),
+      var(--ink);
+    color: var(--paper);
     min-height: 100vh;
   }
+  a { color: var(--teal); }
+  :focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
+
+  /* ---------- Header ---------- */
   header {
-    padding: 24px 20px 12px;
+    position: relative;
+    padding: 44px 20px 28px;
     text-align: center;
     border-bottom: 1px solid var(--border);
+    overflow: hidden;
   }
-  header h1 { margin: 0 0 4px; font-size: 1.6rem; }
-  header p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .aperture-watermark {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 480px; height: 480px;
+    transform: translate(-50%, -50%);
+    opacity: 0.05;
+    pointer-events: none;
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin: 0 0 10px;
+    position: relative;
+  }
+  .brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+  }
+  h1 {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
+    letter-spacing: -0.01em;
+  }
+  h1 span { color: var(--brass-bright); }
+  header p.tagline {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 0.98rem;
+    position: relative;
+  }
 
+  .status-bar {
+    max-width: 620px;
+    margin: 20px auto 0;
+    display: flex;
+    justify-content: center;
+    gap: 22px;
+    flex-wrap: wrap;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    position: relative;
+  }
+  .status-bar .dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--teal);
+    margin-right: 6px;
+    box-shadow: 0 0 6px var(--teal);
+  }
+  .status-bar .dot.off { background: var(--bad); box-shadow: 0 0 6px var(--bad); }
+
+  /* ---------- Layout ---------- */
   .container {
-    max-width: 900px;
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 20px 16px 60px;
+    padding: 32px 20px 70px;
+  }
+  .grid {
     display: grid;
-    gap: 20px;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
   }
 
   .panel {
     background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px;
+    border-radius: 4px;
+    padding: 22px;
+    position: relative;
   }
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--brass) 0%, transparent 60%);
+  }
+  .panel-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-label .idx { color: var(--muted); }
 
-  label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+  label.field-label {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 7px;
+  }
 
   textarea {
     width: 100%;
-    min-height: 160px;
-    background: #0c0e12;
-    color: var(--text);
+    min-height: 180px;
+    background: var(--ink);
+    color: var(--paper);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.9rem;
+    border-radius: 3px;
+    padding: 13px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.86rem;
+    line-height: 1.5;
     resize: vertical;
+    transition: border-color 0.15s;
   }
+  textarea:focus { border-color: var(--brass); }
+  textarea.drag-over { border-color: var(--brass-bright); background: #14202f; }
 
   input[type="text"] {
     width: 100%;
-    background: #0c0e12;
-    color: var(--text);
+    background: var(--ink);
+    color: var(--paper);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
+    border-radius: 3px;
+    padding: 11px 13px;
     font-size: 0.9rem;
+    font-family: 'IBM Plex Sans', sans-serif;
   }
+  input[type="text"]:focus { border-color: var(--brass); }
 
-  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
 
   button {
-    background: var(--accent);
-    color: white;
+    background: var(--brass);
+    color: #1a1305;
     border: none;
-    padding: 11px 20px;
-    border-radius: 10px;
-    font-size: 0.95rem;
+    padding: 11px 22px;
+    border-radius: 3px;
+    font-size: 0.9rem;
     font-weight: 600;
+    font-family: 'IBM Plex Sans', sans-serif;
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, transform 0.1s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
   }
-  button:hover { background: var(--accent-dark); }
-  button:disabled { background: #3a3f4b; cursor: not-allowed; }
+  button:hover:not(:disabled) { background: var(--brass-bright); }
+  button:active:not(:disabled) { transform: scale(0.98); }
+  button:disabled { background: #33415a; color: var(--muted); cursor: not-allowed; }
 
-  .file-btn {
+  .btn-ghost {
     background: transparent;
     border: 1px solid var(--border);
-    color: var(--text);
+    color: var(--paper);
     font-weight: 500;
   }
-  .file-btn:hover { background: #1f232c; }
+  .btn-ghost:hover:not(:disabled) { background: var(--panel-raised); border-color: var(--brass); }
 
-  .status { font-size: 0.85rem; color: var(--muted); }
+  .status { font-size: 0.8rem; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
   .status.error { color: var(--bad); }
 
+  .stat-chip {
+    display: inline-flex;
+    gap: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.76rem;
+    color: var(--teal);
+    background: rgba(95,208,192,0.08);
+    border: 1px solid rgba(95,208,192,0.25);
+    padding: 7px 12px;
+    border-radius: 3px;
+    margin-top: 10px;
+  }
+
+  /* ---------- Output panel ---------- */
+  #outputWrap { min-height: 200px; }
   #output {
-    white-space: pre-wrap;
-    line-height: 1.55;
-    font-size: 0.98rem;
-    min-height: 60px;
+    line-height: 1.6;
+    font-size: 0.96rem;
   }
   #output:empty::before {
-    content: "Your plain-language insights will stream in here.";
+    content: "Awaiting input — paste or upload data, then focus the lens.";
     color: var(--muted);
+    font-style: italic;
   }
-  .cursor {
-    display: inline-block;
-    width: 8px; height: 1.1em;
-    background: var(--accent);
-    margin-left: 2px;
-    animation: blink 1s step-start infinite;
-    vertical-align: text-bottom;
-  }
-  @keyframes blink { 50% { opacity: 0; } }
-
   #output h1, #output h2, #output h3 {
-    color: var(--accent);
-    margin: 0.6em 0 0.3em;
-    font-size: 1.1rem;
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--brass-bright);
+    margin: 0.7em 0 0.35em;
+    font-size: 1.08rem;
   }
-  #output p { margin: 0 0 0.7em; }
-  #output ul, #output ol { margin: 0 0 0.7em 1.2em; padding: 0; }
-  #output li { margin-bottom: 0.3em; }
+  #output h2:first-child { margin-top: 0; }
+  #output p { margin: 0 0 0.7em; color: #dbe3ec; }
+  #output ul, #output ol { margin: 0 0 0.8em 1.3em; padding: 0; color: #dbe3ec; }
+  #output li { margin-bottom: 0.35em; }
   #output strong { color: #fff; }
-  #output table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 0.5em 0 1em;
-    font-size: 0.9rem;
+  #output table { border-collapse: collapse; width: 100%; margin: 0.6em 0 1.1em; font-size: 0.87rem; }
+  #output th, #output td { border: 1px solid var(--border); padding: 7px 11px; text-align: left; }
+  #output th { background: var(--panel-raised); color: var(--teal); font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
+  #output code { background: var(--ink); padding: 1px 6px; border-radius: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 0.9em; color: var(--teal); }
+
+  /* ---------- Aperture loader (signature element) ---------- */
+  .aperture-loader {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 30px 0;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
   }
-  #output th, #output td {
-    border: 1px solid var(--border);
-    padding: 6px 10px;
-    text-align: left;
+  .aperture-loader svg { animation: focus-pulse 1.6s ease-in-out infinite; }
+  .aperture-loader .blade {
+    transform-origin: 30px 30px;
+    animation: blade-spin 2.4s linear infinite;
   }
-  #output th { background: #1f232c; }
-  #output code {
-    background: #0c0e12;
-    padding: 1px 5px;
-    border-radius: 4px;
-    font-family: ui-monospace, monospace;
-    font-size: 0.9em;
+  @keyframes focus-pulse {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+  @keyframes blade-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .aperture-loader svg, .aperture-loader .blade { animation: none; }
   }
 
-  footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding: 20px; }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 26px 20px 10px;
+    letter-spacing: 0.02em;
+  }
+  footer .sep { color: var(--border); margin: 0 8px; }
 
   @media (max-width: 600px) {
-    header h1 { font-size: 1.3rem; }
     .row { flex-direction: column; align-items: stretch; }
-    button { width: 100%; }
+    button { width: 100%; justify-content: center; }
+    .panel { padding: 18px; }
   }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 </head>
 <body>
 
 <header>
-  <h1>📊 DataLens AI</h1>
-  <p>Paste a CSV or raw data, get plain-language insights — streamed live.</p>
+  <svg class="aperture-watermark" viewBox="0 0 200 200"><circle cx="100" cy="100" r="95" fill="none" stroke="#d1a054" stroke-width="1"/><circle cx="100" cy="100" r="75" fill="none" stroke="#d1a054" stroke-width="1"/><circle cx="100" cy="100" r="55" fill="none" stroke="#d1a054" stroke-width="1"/><circle cx="100" cy="100" r="35" fill="none" stroke="#d1a054" stroke-width="1"/></svg>
+  <p class="eyebrow">Data Explainer · Streaming Instrument</p>
+  <div class="brand-row">
+    <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+      <circle cx="15" cy="15" r="13" stroke="#d1a054" stroke-width="1.6"/>
+      <circle cx="15" cy="15" r="7.5" stroke="#5fd0c0" stroke-width="1.4"/>
+      <circle cx="15" cy="15" r="2.2" fill="#e6b96e"/>
+    </svg>
+    <h1>Data<span>Lens</span> AI</h1>
+  </div>
+  <p class="tagline">Paste raw or CSV data. Bring it into focus with a plain-language read — streamed live.</p>
+  <div class="status-bar">
+    <span id="modelStatus"><span class="dot off"></span>Checking instrument…</span>
+    <span>Provider: OpenRouter</span>
+  </div>
 </header>
 
 <div class="container">
-  <div class="panel">
-    <label for="dataInput">Your data (CSV or free-form text)</label>
-    <textarea id="dataInput" placeholder="date,region,sales&#10;2024-01-01,North,1200&#10;2024-01-02,South,900&#10;..."></textarea>
+  <div class="grid">
 
-    <div class="row">
-      <input type="file" id="fileInput" accept=".csv,.txt" style="display:none" />
-      <button type="button" class="file-btn" id="uploadBtn">Upload CSV/TXT</button>
-      <span class="status" id="fileStatus"></span>
+    <div class="panel">
+      <p class="panel-label"><span class="idx">01</span> Sample Under Lens</p>
+
+      <label class="field-label" for="dataInput">Your data (CSV or free-form text)</label>
+      <textarea id="dataInput" placeholder="date,region,sales&#10;2024-01-01,North,1200&#10;2024-01-02,South,900&#10;..."></textarea>
+
+      <div class="row">
+        <input type="file" id="fileInput" accept=".csv,.txt" style="display:none" />
+        <button type="button" class="btn-ghost" id="uploadBtn">↑ Upload CSV / TXT</button>
+      </div>
+      <div id="statChip"></div>
+
+      <div style="margin-top:18px;">
+        <label class="field-label" for="question">Optional question (e.g. "any seasonal trend?")</label>
+        <input type="text" id="question" placeholder="What would you like to know?" />
+      </div>
+
+      <div class="row">
+        <button id="analyzeBtn">
+          <svg width="14" height="14" viewBox="0 0 30 30" fill="none"><circle cx="15" cy="15" r="12" stroke="#1a1305" stroke-width="2"/><circle cx="15" cy="15" r="5" stroke="#1a1305" stroke-width="2"/></svg>
+          Focus the Lens
+        </button>
+        <span class="status" id="requestStatus"></span>
+      </div>
     </div>
 
-    <div style="margin-top:14px;">
-      <label for="question">Optional question (e.g. "any seasonal trend?")</label>
-      <input type="text" id="question" placeholder="What would you like to know?" />
+    <div class="panel">
+      <p class="panel-label"><span class="idx">02</span> Reading</p>
+      <div id="outputWrap">
+        <div id="output"></div>
+      </div>
     </div>
 
-    <div class="row">
-      <button id="analyzeBtn">Analyze with AI</button>
-      <span class="status" id="requestStatus"></span>
-    </div>
-  </div>
-
-  <div class="panel">
-    <label>AI Insights</label>
-    <div id="output"></div>
   </div>
 </div>
 
-<footer>DataLens AI — Vibe Coding Project · Built with Claude API + FastAPI + Docker + AWS</footer>
+<footer>DataLens AI <span class="sep">/</span> Vibe Coding Project <span class="sep">/</span> FastAPI + OpenRouter + Docker + Render</footer>
 
 <script>
-  // Backend URL: same-origin in production (frontend is served by FastAPI),
-  // override for local dev by editing this constant.
   const API_BASE = window.location.origin;
 
   const dataInput = document.getElementById('dataInput');
   const fileInput = document.getElementById('fileInput');
   const uploadBtn = document.getElementById('uploadBtn');
-  const fileStatus = document.getElementById('fileStatus');
+  const statChip = document.getElementById('statChip');
   const questionInput = document.getElementById('question');
   const analyzeBtn = document.getElementById('analyzeBtn');
   const requestStatus = document.getElementById('requestStatus');
   const output = document.getElementById('output');
+  const modelStatus = document.getElementById('modelStatus');
+
+  // Instrument status readout
+  fetch(`${API_BASE}/api/health`).then(r => r.json()).then(data => {
+    modelStatus.innerHTML = `<span class="dot"></span>${data.model || 'model unknown'}`;
+  }).catch(() => {
+    modelStatus.innerHTML = `<span class="dot off"></span>Instrument offline`;
+  });
+
+  function describeData(text) {
+    const lines = text.trim().split(/\r?\n/).filter(Boolean);
+    if (lines.length < 2) return null;
+    const cols = lines[0].split(',').length;
+    if (cols < 2) return null;
+    return `${lines.length - 1} rows · ${cols} columns detected`;
+  }
+
+  function loadFile(file) {
+    file.text().then(text => {
+      dataInput.value = text;
+      const desc = describeData(text);
+      statChip.innerHTML = `<span class="stat-chip">${file.name} · ${(file.size/1024).toFixed(1)} KB${desc ? ' · ' + desc : ''}</span>`;
+    });
+  }
 
   uploadBtn.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', async () => {
-    const file = fileInput.files[0];
-    if (!file) return;
-    const text = await file.text();
-    dataInput.value = text;
-    fileStatus.textContent = `Loaded ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) loadFile(fileInput.files[0]);
   });
+
+  // Drag & drop onto the textarea
+  ['dragenter', 'dragover'].forEach(evt =>
+    dataInput.addEventListener(evt, (e) => { e.preventDefault(); dataInput.classList.add('drag-over'); })
+  );
+  ['dragleave', 'drop'].forEach(evt =>
+    dataInput.addEventListener(evt, (e) => { e.preventDefault(); dataInput.classList.remove('drag-over'); })
+  );
+  dataInput.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files[0];
+    if (file) loadFile(file);
+  });
+
+  function apertureLoader(label) {
+    return `
+      <div class="aperture-loader">
+        <svg width="34" height="34" viewBox="0 0 60 60" fill="none">
+          <circle cx="30" cy="30" r="26" stroke="#22334a" stroke-width="2"/>
+          <g class="blade">
+            <path d="M30 8 L38 22 L22 22 Z" fill="#d1a054" opacity="0.85"/>
+          </g>
+          <circle cx="30" cy="30" r="10" stroke="#5fd0c0" stroke-width="1.6"/>
+        </svg>
+        <span>${label}</span>
+      </div>`;
+  }
 
   analyzeBtn.addEventListener('click', async () => {
     const dataText = dataInput.value.trim();
@@ -226,9 +436,12 @@
       return;
     }
     requestStatus.classList.remove('error');
-    requestStatus.textContent = 'Contacting AI...';
+    requestStatus.textContent = 'Contacting instrument…';
     analyzeBtn.disabled = true;
-    output.innerHTML = '<span class="cursor"></span>';
+    output.innerHTML = '';
+    output.insertAdjacentHTML('beforebegin', '');
+    document.getElementById('outputWrap').innerHTML = apertureLoader('Focusing on your data…') + '<div id="output"></div>';
+    const liveOutput = document.getElementById('output');
 
     try {
       const resp = await fetch(`${API_BASE}/api/analyze`, {
@@ -241,9 +454,9 @@
         throw new Error(`Server error: ${resp.status}`);
       }
 
-      requestStatus.textContent = 'Streaming response...';
-      output.textContent = '';
+      requestStatus.textContent = 'Streaming…';
       let rawText = '';
+      let clearedLoader = false;
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
@@ -255,28 +468,36 @@
         buffer += decoder.decode(value, { stream: true });
 
         const lines = buffer.split('\n\n');
-        buffer = lines.pop(); // keep incomplete chunk in buffer
+        buffer = lines.pop();
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
           const payload = JSON.parse(line.slice(6));
+
+          if (!clearedLoader && (payload.text || payload.error)) {
+            document.querySelector('.aperture-loader')?.remove();
+            clearedLoader = true;
+          }
+
           if (payload.error) {
             rawText += `\n\n**[Error: ${payload.error}]**`;
-            output.innerHTML = marked.parse(rawText);
+            liveOutput.innerHTML = marked.parse(rawText);
             requestStatus.textContent = 'Error during streaming.';
             requestStatus.classList.add('error');
           } else if (payload.text) {
             rawText += payload.text;
-            output.innerHTML = marked.parse(rawText);
+            liveOutput.innerHTML = marked.parse(rawText);
           } else if (payload.done) {
-            requestStatus.textContent = 'Done.';
+            requestStatus.textContent = 'In focus.';
           }
         }
       }
+      document.querySelector('.aperture-loader')?.remove();
     } catch (err) {
+      document.querySelector('.aperture-loader')?.remove();
       requestStatus.textContent = `Failed: ${err.message}`;
       requestStatus.classList.add('error');
-      output.textContent = 'Something went wrong. Please check that the backend is running and try again.';
+      liveOutput.textContent = 'Something went wrong. Please check that the backend is running and try again.';
     } finally {
       analyzeBtn.disabled = false;
     }
