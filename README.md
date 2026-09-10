@@ -1,84 +1,116 @@
-# DataLens AI
+# 📊 DataLens AI
 
-Paste or upload raw/CSV data and get streamed, plain-language AI insights —
-built with FastAPI, the Anthropic Claude API, Docker, and AWS App Runner.
+> Turn raw spreadsheets into clear, AI-generated insights — no formulas, no dashboards, no waiting.
 
-## 1. Run locally
+**DataLens AI** is a web application that lets you upload your data (CSV/Excel) and get instant, AI-powered analysis streamed back to you in real time. Built for anyone who wants to *understand* their data without wrestling with pivot tables or writing a single line of pandas.
 
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\Activate.ps1
+🔗 **Live App:** [datalens-ai-y8zs.onrender.com](https://datalens-ai-y8zs.onrender.com)
+📦 **Repo:** [github.com/Gursimar1805/datalens-ai](https://github.com/Gursimar1805/datalens-ai)
+
+---
+
+## ✨ What It Does
+
+1. **Upload** a CSV or Excel file straight from your browser.
+2. **Ask/Analyze** — the app sends your data to an LLM which generates insights, summaries, and patterns.
+3. **Watch it think** — responses are streamed token-by-token via Server-Sent Events (SSE), so you see the analysis unfold live instead of staring at a loading spinner.
+
+No account setup. No manual charting. Just data in, insight out.
+
+---
+
+## 🧠 Why It's Different
+
+Most "AI + data" tools either lock you into a heavyweight BI platform or require you to already know what question to ask. DataLens AI is intentionally minimal:
+
+- **Zero-friction input** — drag in a spreadsheet, that's it.
+- **Real-time feedback loop** — SSE streaming means you're reading insights as they're generated, not waiting on a single blocking API call.
+- **Free-tier friendly AI** — runs on OpenRouter's `inclusionai/ling-3.0-flash:free` model, proving useful data analysis doesn't require an expensive API bill.
+- **Containerized & reproducible** — the entire app ships as a Docker image, so "works on my machine" isn't a concern.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | **FastAPI** (Python) |
+| Streaming | **Server-Sent Events (SSE)** |
+| AI / LLM | **OpenRouter** → `inclusionai/ling-3.0-flash:free` |
+| Data Handling | CSV / Excel parsing |
+| Containerization | **Docker** |
+| Deployment | **Render** |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Python 3.10+
+- Docker (optional, for containerized runs)
+- An [OpenRouter](https://openrouter.ai/) API key
+
+### Local Setup
+
+\`\`\`bash
+# Clone the repo
+git clone https://github.com/Gursimar1805/datalens-ai.git
+cd datalens-ai
+
+# Install dependencies
 pip install -r requirements.txt
-cp .env.example .env            # then paste your real ANTHROPIC_API_KEY into .env
-uvicorn main:app --reload --port 8000
-```
 
-Open http://localhost:8000 — the backend also serves the frontend directly.
+# Set environment variables
+export OPENROUTER_API_KEY=your_key_here
 
-## 2. Run with Docker (locally)
+# Run the app
+uvicorn main:app --reload
+\`\`\`
 
-```bash
+Visit `http://localhost:8000` to start uploading files.
+
+### Run with Docker
+
+\`\`\`bash
 docker build -t datalens-ai .
-docker run -p 8080:8080 --env-file backend/.env datalens-ai
-```
+docker run -p 8000:8000 -e OPENROUTER_API_KEY=your_key_here datalens-ai
+\`\`\`
 
-Open http://localhost:8080
+---
 
-## 3. Push image to Amazon ECR
+## 📁 Project Structure
 
-```bash
-# One-time setup
-aws configure                     # enter your AWS Access Key, Secret, region
-aws ecr create-repository --repository-name datalens-ai
+\`\`\`
+datalens-ai/
+├── main.py              # FastAPI app & SSE streaming logic
+├── requirements.txt      # Python dependencies
+├── Dockerfile             # Container definition
+└── ...
+\`\`\`
 
-# Authenticate Docker to ECR (replace <account-id> and <region>)
-aws ecr get-login-password --region <region> | \
-  docker login --username AWS --password-stdin <account-id>.dkr.ecr.<region>.amazonaws.com
+*(Adjust the tree above to match your actual repo layout.)*
 
-# Build, tag, push
-docker build -t datalens-ai .
-docker tag datalens-ai:latest <account-id>.dkr.ecr.<region>.amazonaws.com/datalens-ai:latest
-docker push <account-id>.dkr.ecr.<region>.amazonaws.com/datalens-ai:latest
-```
+---
 
-## 4. Deploy on AWS App Runner (free-tier friendly)
+## 🗺️ Roadmap
 
-1. AWS Console → **App Runner** → **Create service**.
-2. Source: **Container registry** → **Amazon ECR** → select `datalens-ai:latest`.
-3. Deployment trigger: Manual (or Automatic if you want redeploy-on-push).
-4. Port: `8080` (matches the Dockerfile `EXPOSE`).
-5. Environment variables (Configure service → Environment variables):
-   - `ANTHROPIC_API_KEY` = your real key (never commit this — set it here only)
-   - `ANTHROPIC_MODEL` = `claude-sonnet-4-6`
-   - `ALLOWED_ORIGINS` = your App Runner URL once known (or `*` while testing)
-6. Instance size: smallest option (0.25 vCPU / 0.5 GB) is enough for this app.
-7. Create & deploy. App Runner gives you a public HTTPS URL like
-   `https://xxxxx.<region>.awsapprunner.com` — that's your live AWS URL for
-   the Concept Note / Project Report.
+- [ ] Support for JSON and Google Sheets as input sources
+- [ ] Downloadable insight reports (PDF/Markdown)
+- [ ] Chart/visualization generation alongside text insights
+- [ ] Multi-file / multi-sheet comparison analysis
+- [ ] User accounts for saved analysis history
 
-## 5. Cost & safety guardrails
+---
 
-- Set an **AWS Budget alert** (Billing → Budgets → Create budget) at, e.g., $1
-  so you're notified before any charge.
-- App Runner's smallest instance + low traffic stays within/near free tier for
-  a short-lived class project. Pause or delete the service after submission
-  and grading if you don't need it running.
-- The Anthropic API key is only ever read from environment variables — it
-  never appears in `frontend/`, in Git history, or in the Docker image layers
-  (`.dockerignore` excludes `.env`).
+## 🙋 About
 
-## Architecture
+Built by **Gursimar Singh Kohli** — B.Tech CS (AI & ML) student, GenAI & Cloud Intern at BharatCares (AICTE–IBM SkillsBuild). DataLens AI was featured as the central project in the BharatCares GenAI & Cloud Computing Summer Training Report.
 
-```
-Browser (frontend/index.html)
-   │  fetch() streaming POST /api/analyze
-   ▼
-FastAPI backend (backend/main.py)
-   │  anthropic.messages.stream()
-   ▼
-Claude API (Anthropic)
-```
+- GitHub: [@Gursimar1805](https://github.com/Gursimar1805)
+- LinkedIn: [Gursimar Singh Kohli](https://linkedin.com/in/gursimar-singh-kohli-9b60a0255/)
 
-Single Docker image serves both frontend (static files) and backend (API),
-simplifying App Runner deployment to one container.
+---
+
+## 📄 License
+
+This project is open for learning and demonstration purposes. Add a formal license (MIT, Apache 2.0, etc.) if you plan to open it up for external contributions.
