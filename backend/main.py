@@ -57,40 +57,66 @@ class AnalyzeRequest(BaseModel):
     question: str = ""      # optional user question, e.g. "any seasonality?"
 
 
-MAX_CHARS = 20000  # guard against oversized payloads
+MAX_CHARS = 80000  # guard against oversized payloads
 
 
-def sniff_and_summarize(data_text: str) -> str:
+def sniff_and_summarize(data_text: str) -> tuple[str, int]:
     """
-    Give the model a lightweight structural hint (columns, row count) when the
-    input looks like CSV, so it doesn't have to guess the schema from scratch.
-    Falls back gracefully for free-form text.
+    Returns (sample_text_for_model, actual_total_row_count).
+    Row count is computed from the FULL input, not the truncated sample.
     """
-    sample = data_text.strip()[:MAX_CHARS]
+    full_stripped = data_text.strip()
     try:
-        reader = csv.reader(io.StringIO(sample))
-        rows = list(reader)
-        if len(rows) >= 2 and len(rows[0]) > 1:
-            headers = rows[0]
-            return (
-                f"[Detected CSV-like input: {len(headers)} columns "
-                f"({', '.join(headers[:10])}{'...' if len(headers) > 10 else ''}), "
-                f"~{len(rows) - 1} data rows]\n\n{sample}"
-            )
+        full_reader = csv.reader(io.StringIO(full_stripped))
+        all_rows = list(full_reader)
+        total_rows = max(len(all_rows) - 1, 0)  # minus header
+        headers = all_rows[0] if all_rows else []
     except Exception:
-        pass
-    return sample
+        total_rows = 0
+        headers = []
+
+    sample = full_stripped[:MAX_CHARS]
+    if headers:
+        return (
+            f"[Dataset: {len(headers)} columns "
+            f"({', '.join(headers[:10])}{'...' if len(headers) > 10 else ''}), "
+            f"{total_rows} TOTAL rows. You are being shown a SAMPLE of the "
+            f"first rows below due to size limits — do not state row counts "
+            f"as if this sample were the whole dataset; always use the "
+            f"TOTAL figure given here.]\n\n{sample}",
+            total_rows,
+        )
+    return (sample, total_rows)
 
 
 SYSTEM_PROMPT = (
-    "You are DataLens AI, a data analyst assistant. You are given raw pasted "
-    "data (often CSV) and must explain it in clear, plain language for a "
-    "non-technical audience. Structure your response with: 1) a short "
-    "summary of what the dataset appears to contain, 2) 3-5 key insights or "
-    "patterns, 3) any notable outliers or data quality issues, 4) one or two "
-    "suggested next steps for analysis. Be concise, use everyday language, "
-    "and avoid jargon unless you briefly explain it. If the input is not "
-    "data-like, say so plainly and ask for clarification."
+    "You are DataLens AI, a senior data analyst. You are given a dataset "
+    "(full or sampled) and must produce a clear, plain-language analysis "
+    "for a non-technical audience. Always use the TOTAL row count given to "
+    "you, never the number of rows you can literally see if you're working "
+    "from a sample.\n\n"
+    "Structure your response as:\n"
+    "1) **Summary** — what the dataset contains, its scale, and scope.\n"
+    "2) **Key patterns** — 3-5 real trends, correlations, or relationships "
+    "between columns (e.g. 'higher discount % correlates with lower review "
+    "ratings'). Prefer relationships between 2+ columns over single-column "
+    "observations.\n"
+    "3) **Outliers & data quality** — anything that looks unusual, "
+    "inconsistent, or worth double-checking (missing values, extreme "
+    "values, duplicate-looking rows).\n"
+    "4) **Notable segments** — if there are natural groupings (by category, "
+    "location, time period, etc.), call out which segments over- or "
+    "under-perform relative to the rest.\n"
+    "5) **Suggested next steps** — 1-2 concrete follow-up analyses someone "
+    "could run.\n\n"
+    "If the user asks a specific or scenario-based question (e.g. 'what "
+    "would happen if we removed the top 10% of spenders?', 'which segment "
+    "should we target next?'), answer that question directly and "
+    "quantitatively using the data shown, reasoning step by step from the "
+    "actual numbers rather than giving generic advice. State clearly when "
+    "you're estimating or extrapolating due to only seeing a sample.\n\n"
+    "Be concise, avoid jargon unless briefly explained, and if the input "
+    "doesn't look like real data, say so plainly and ask for clarification."
 )
 
 
