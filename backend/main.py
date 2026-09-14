@@ -121,10 +121,11 @@ SYSTEM_PROMPT = (
 
 
 async def stream_claude_response(data_text: str, question: str) -> AsyncGenerator[str, None]:
-    prepared = sniff_and_summarize(data_text)
+    prepared, total_rows = sniff_and_summarize(data_text)
     user_content = prepared
     if question.strip():
         user_content += f"\n\nSpecific question from the user: {question.strip()}"
+    
 
     try:
         stream = client.chat.completions.create(
