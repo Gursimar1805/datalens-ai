@@ -6,17 +6,17 @@
 <title>DataLens AI — Bring your data into focus</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <style>
   :root {
-    --ink: #0b1420;
-    --panel: #101c2b;
-    --panel-raised: #142238;
+    --ink: #0a0f16;
+    --panel: #10161f;
+    --panel-raised: #151e2a;
     --border: #22334a;
     --paper: #eef2f6;
     --muted: #7e94ab;
-    --brass: #d1a054;
+    --brass: #c89b5c;
     --brass-bright: #e6b96e;
     --teal: #5fd0c0;
     --bad: #ef7d6c;
@@ -25,7 +25,6 @@
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
 
-  /* ---------- Background: technical instrument backdrop ---------- */
   body {
     margin: 0;
     font-family: 'IBM Plex Sans', -apple-system, sans-serif;
@@ -55,7 +54,7 @@
     inset: 0;
     z-index: -2;
     background:
-      radial-gradient(900px 520px at 12% 0%, rgba(209,160,84,0.10), transparent 60%),
+      radial-gradient(900px 520px at 12% 0%, rgba(200,155,92,0.10), transparent 60%),
       radial-gradient(760px 460px at 100% 10%, rgba(95,208,192,0.08), transparent 60%),
       radial-gradient(640px 520px at 50% 100%, rgba(95,208,192,0.05), transparent 70%);
     animation: glow-drift 26s ease-in-out infinite alternate;
@@ -70,7 +69,7 @@
     position: fixed;
     inset: 0;
     z-index: -1;
-    background: radial-gradient(ellipse 80% 65% at 50% 30%, transparent 55%, rgba(4, 8, 14, 0.55) 100%);
+    background: radial-gradient(ellipse 80% 65% at 50% 25%, transparent 50%, rgba(4, 8, 14, 0.6) 100%);
     pointer-events: none;
   }
 
@@ -86,80 +85,156 @@
   a { color: var(--teal); }
   :focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
 
-  /* ---------- Header ---------- */
+  /* ---------- Header / Hero ---------- */
   header {
     position: relative;
-    padding: 44px 20px 28px;
+    padding: 56px 20px 32px;
     text-align: center;
     border-bottom: 1px solid var(--border);
     overflow: hidden;
   }
-  .aperture-watermark {
+
+  .rings-backdrop {
     position: absolute;
-    top: 50%; left: 50%;
-    width: 480px; height: 480px;
+    top: 46%; left: 50%;
+    width: 520px; height: 520px;
     transform: translate(-50%, -50%);
-    opacity: 0.06;
+    opacity: 0.05;
     pointer-events: none;
-    animation: aperture-drift 120s linear infinite;
   }
-  @keyframes aperture-drift {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to   { transform: translate(-50%, -50%) rotate(360deg); }
+
+  .iris-wrap {
+    position: relative;
+    width: 108px; height: 108px;
+    margin: 0 auto 22px;
   }
+  .iris-svg {
+    width: 100%; height: 100%;
+    overflow: visible;
+  }
+  .iris-idle {
+    animation: iris-idle-spin 140s linear infinite;
+    animation-delay: 1.3s;
+  }
+  @keyframes iris-idle-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  .blade {
+    transform-origin: 100px 100px;
+    opacity: 0;
+    animation: iris-close 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes iris-close {
+    from { opacity: 0; transform: scale(0.35) rotate(-30deg); }
+    to   { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  .blade:nth-child(2) { animation-delay: 0.02s; }
+  .blade:nth-child(3) { animation-delay: 0.07s; }
+  .blade:nth-child(4) { animation-delay: 0.12s; }
+  .blade:nth-child(5) { animation-delay: 0.17s; }
+  .blade:nth-child(6) { animation-delay: 0.22s; }
+  .blade:nth-child(7) { animation-delay: 0.27s; }
+  .blade:nth-child(8) { animation-delay: 0.32s; }
+  .blade:nth-child(9) { animation-delay: 0.37s; }
+  .iris-core {
+    opacity: 0;
+    animation: core-glow 0.6s ease-out 0.75s forwards;
+  }
+  @keyframes core-glow {
+    from { opacity: 0; transform: scale(0.5); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
   .eyebrow {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.72rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--teal);
-    margin: 0 0 10px;
+    margin: 0 0 4px;
     position: relative;
+    opacity: 0;
+    animation: reveal-up 0.6s ease-out 0.9s forwards;
   }
+
   .brand-row {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
     position: relative;
+    opacity: 0;
+    animation: reveal-up 0.7s ease-out 1s forwards;
   }
   h1 {
     margin: 0;
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
-    font-size: clamp(1.7rem, 4vw, 2.4rem);
-    letter-spacing: -0.01em;
+    font-size: clamp(2rem, 5.2vw, 3.1rem);
+    letter-spacing: -0.02em;
+    color: var(--paper);
   }
-  h1 span { color: var(--brass-bright); }
-  header p.tagline {
-    margin: 10px 0 0;
-    color: var(--muted);
-    font-size: 0.98rem;
-    position: relative;
+  .brand-rule {
+    width: 46px; height: 2px;
+    margin: 14px auto 0;
+    background: linear-gradient(90deg, transparent, var(--brass), transparent);
+    opacity: 0;
+    animation: reveal-up 0.6s ease-out 1.15s forwards;
   }
 
-  .status-bar {
-    max-width: 620px;
-    margin: 20px auto 0;
+  @keyframes reveal-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  header p.tagline {
+    margin: 18px auto 0;
+    max-width: 480px;
+    color: var(--muted);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-size: 1.18rem;
+    line-height: 1.45;
+    position: relative;
+    opacity: 0;
+    animation: reveal-up 0.7s ease-out 1.3s forwards;
+  }
+
+  .readout {
+    max-width: 420px;
+    margin: 26px auto 0;
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 22px;
+    gap: 18px;
     flex-wrap: wrap;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--muted);
+    font-size: 0.74rem;
+    color: var(--teal);
+    background:
+      repeating-linear-gradient(180deg, rgba(95,208,192,0.025) 0px, rgba(95,208,192,0.025) 1px, transparent 1px, transparent 3px),
+      var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 18px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 12px 30px -18px rgba(0,0,0,0.6);
     position: relative;
+    opacity: 0;
+    animation: reveal-up 0.6s ease-out 1.45s forwards;
   }
-  .status-bar .dot {
+  .readout .sep-v { color: var(--border); }
+  .readout .dot {
     display: inline-block;
     width: 7px; height: 7px;
     border-radius: 50%;
     background: var(--teal);
-    margin-right: 6px;
+    margin-right: 7px;
     box-shadow: 0 0 6px var(--teal);
     animation: dot-pulse 2.2s ease-in-out infinite;
   }
-  .status-bar .dot.off {
+  .readout .dot.off {
     background: var(--bad);
     box-shadow: 0 0 6px var(--bad);
     animation: none;
@@ -294,7 +369,6 @@
     margin-top: 10px;
   }
 
-  /* ---------- Output panel ---------- */
   #outputWrap { min-height: 200px; }
   #output {
     line-height: 1.6;
@@ -329,7 +403,6 @@
   }
   @keyframes cursor-blink { 50% { opacity: 0; } }
 
-  /* ---------- Aperture loader (signature element) ---------- */
   .aperture-loader {
     display: flex;
     align-items: center;
@@ -340,7 +413,7 @@
     font-size: 0.82rem;
   }
   .aperture-loader svg { animation: focus-pulse 1.6s ease-in-out infinite; }
-  .aperture-loader .blade {
+  .aperture-loader .blade-spin {
     transform-origin: 30px 30px;
     animation: blade-spin 2.4s linear infinite;
   }
@@ -355,12 +428,17 @@
 
   @media (prefers-reduced-motion: reduce) {
     .aperture-loader svg,
-    .aperture-loader .blade,
-    .status-bar .dot,
-    .aperture-watermark,
+    .aperture-loader .blade-spin,
+    .readout .dot,
+    .iris-idle,
+    .blade,
+    .iris-core,
+    .eyebrow, .brand-row, .brand-rule, header p.tagline, .readout,
     .bg-glow,
     .stream-cursor {
-      animation: none;
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
     }
   }
 
@@ -393,19 +471,36 @@
 </svg>
 
 <header>
-  <svg class="aperture-watermark" viewBox="0 0 200 200"><circle cx="100" cy="100" r="95" fill="none" stroke="#d1a054" stroke-width="1"/><circle cx="100" cy="100" r="75" fill="none" stroke="#d1a054" stroke-width="1"/><circle cx="100" cy="100" r="55" fill="none" stroke="#d1a054" stroke-width="1"/><circle cx="100" cy="100" r="35" fill="none" stroke="#d1a054" stroke-width="1"/></svg>
+  <svg class="rings-backdrop" viewBox="0 0 200 200"><circle cx="100" cy="100" r="95" fill="none" stroke="#c89b5c" stroke-width="1"/><circle cx="100" cy="100" r="75" fill="none" stroke="#c89b5c" stroke-width="1"/><circle cx="100" cy="100" r="55" fill="none" stroke="#c89b5c" stroke-width="1"/><circle cx="100" cy="100" r="35" fill="none" stroke="#c89b5c" stroke-width="1"/></svg>
+
+  <div class="iris-wrap">
+    <svg class="iris-svg" viewBox="0 0 200 200">
+      <g class="iris-idle">
+        <circle cx="100" cy="100" r="94" fill="none" stroke="#22334a" stroke-width="1.5"/>
+        <g class="blade"><path d="M100 100 L118 22 L142 34 Z" fill="#c89b5c"/></g>
+        <g class="blade" style="transform: rotate(45deg)"><path d="M100 100 L118 22 L142 34 Z" fill="#c89b5c"/></g>
+        <g class="blade" style="transform: rotate(90deg)"><path d="M100 100 L118 22 L142 34 Z" fill="#c89b5c"/></g>
+        <g class="blade" style="transform: rotate(135deg)"><path d="M100 100 L118 22 L142 34 Z" fill="#c89b5c"/></g>
+        <g class="blade" style="transform: rotate(180deg)"><path d="M100 100 L118 22 L142 34 Z" fill="#c89b5c"/></g>
+        <g class="blade" style="transform: rotate(225deg)"><path d="M100 100 L118 22 L142 34 Z" fill="#c89b5c"/></g>
+        <g class="blade" style="transform: rotate(270deg)"><path d="M100 100 L118 22 L142 34 Z" fill="#c89b5c"/></g>
+        <g class="blade" style="transform: rotate(315deg)"><path d="M100 100 L118 22 L142 34 Z" fill="#c89b5c"/></g>
+        <circle class="iris-core" cx="100" cy="100" r="16" fill="none" stroke="#5fd0c0" stroke-width="2"/>
+        <circle class="iris-core" cx="100" cy="100" r="3" fill="#e6b96e"/>
+      </g>
+    </svg>
+  </div>
+
   <p class="eyebrow">Data Explainer · Streaming Instrument</p>
   <div class="brand-row">
-    <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
-      <circle cx="15" cy="15" r="13" stroke="#d1a054" stroke-width="1.6"/>
-      <circle cx="15" cy="15" r="7.5" stroke="#5fd0c0" stroke-width="1.4"/>
-      <circle cx="15" cy="15" r="2.2" fill="#e6b96e"/>
-    </svg>
-    <h1>Data<span>Lens</span> AI</h1>
+    <h1>DataLens AI</h1>
   </div>
+  <div class="brand-rule"></div>
   <p class="tagline">Paste raw or CSV data. Bring it into focus with a plain-language read — streamed live.</p>
-  <div class="status-bar">
-    <span id="modelStatus"><span class="dot off"></span>Checking instrument…</span>
+
+  <div class="readout" id="modelStatus">
+    <span><span class="dot off"></span>Checking instrument…</span>
+    <span class="sep-v">|</span>
     <span>Provider: OpenRouter</span>
   </div>
 </header>
@@ -465,9 +560,9 @@
   const modelStatus = document.getElementById('modelStatus');
 
   fetch(`${API_BASE}/api/health`).then(r => r.json()).then(data => {
-    modelStatus.innerHTML = `<span class="dot"></span>${data.model || 'model unknown'}`;
+    modelStatus.innerHTML = `<span><span class="dot"></span>${data.model || 'model unknown'}</span><span class="sep-v">|</span><span>Provider: OpenRouter</span>`;
   }).catch(() => {
-    modelStatus.innerHTML = `<span class="dot off"></span>Instrument offline`;
+    modelStatus.innerHTML = `<span><span class="dot off"></span>Instrument offline</span>`;
   });
 
   function describeData(text) {
@@ -507,8 +602,8 @@
       <div class="aperture-loader">
         <svg width="34" height="34" viewBox="0 0 60 60" fill="none">
           <circle cx="30" cy="30" r="26" stroke="#22334a" stroke-width="2"/>
-          <g class="blade">
-            <path d="M30 8 L38 22 L22 22 Z" fill="#d1a054" opacity="0.85"/>
+          <g class="blade-spin">
+            <path d="M30 8 L38 22 L22 22 Z" fill="#c89b5c" opacity="0.85"/>
           </g>
           <circle cx="30" cy="30" r="10" stroke="#5fd0c0" stroke-width="1.6"/>
         </svg>
@@ -527,7 +622,6 @@
     requestStatus.textContent = 'Contacting instrument…';
     analyzeBtn.disabled = true;
     output.innerHTML = '';
-    output.insertAdjacentHTML('beforebegin', '');
     document.getElementById('outputWrap').innerHTML = apertureLoader('Focusing on your data…') + '<div id="output"></div>';
     const liveOutput = document.getElementById('output');
 
