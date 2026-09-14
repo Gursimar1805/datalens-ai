@@ -136,8 +136,7 @@ async def stream_claude_response(data_text: str, question: str) -> AsyncGenerato
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_content},
-            ],
-            stream=True,
+            ],     
         )
         for chunk in stream:
             delta = chunk.choices[0].delta
