@@ -131,6 +131,8 @@ async def stream_claude_response(data_text: str, question: str) -> AsyncGenerato
         stream = client.chat.completions.create(
             model=MODEL_NAME,
             max_tokens=2048,
+            stream=True, 
+            extra_body={"reasoning": {"enabled": False}},
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_content},
