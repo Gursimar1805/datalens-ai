@@ -4,7 +4,7 @@
 
 **DataLens AI** is a web application that lets you upload your data (CSV/Excel) and get instant, AI-powered analysis streamed back to you in real time. Built for anyone who wants to *understand* their data without wrestling with pivot tables or writing a single line of pandas.
 
-🔗 **Live App:** [datalens-ai-y8zs.onrender.com](https://datalens-ai-y8zs.onrender.com)
+🔗 **Live App:** [datalens-ai-y8zs.onrender.com](https://datalens-ai-1.onrender.com)
 📦 **Repo:** [github.com/Gursimar1805/datalens-ai](https://github.com/Gursimar1805/datalens-ai)
 
 ---
