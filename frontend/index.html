@@ -20,19 +20,69 @@
     --brass-bright: #e6b96e;
     --teal: #5fd0c0;
     --bad: #ef7d6c;
+    --grid-line: rgba(95, 208, 192, 0.05);
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
+
+  /* ---------- Background: technical instrument backdrop ---------- */
   body {
     margin: 0;
     font-family: 'IBM Plex Sans', -apple-system, sans-serif;
-    background:
-      radial-gradient(1200px 600px at 15% -10%, rgba(209,160,84,0.06), transparent),
-      radial-gradient(900px 500px at 100% 0%, rgba(95,208,192,0.05), transparent),
-      var(--ink);
     color: var(--paper);
     min-height: 100vh;
+    position: relative;
+    background: var(--ink);
+    isolation: isolate;
   }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 42px 42px;
+    background-position: center top;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 40%, transparent 90%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 40%, transparent 90%);
+  }
+
+  .bg-glow {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(900px 520px at 12% 0%, rgba(209,160,84,0.10), transparent 60%),
+      radial-gradient(760px 460px at 100% 10%, rgba(95,208,192,0.08), transparent 60%),
+      radial-gradient(640px 520px at 50% 100%, rgba(95,208,192,0.05), transparent 70%);
+    animation: glow-drift 26s ease-in-out infinite alternate;
+  }
+  @keyframes glow-drift {
+    0%   { transform: translate(0px, 0px) scale(1); }
+    100% { transform: translate(-2%, 1.5%) scale(1.04); }
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(ellipse 80% 65% at 50% 30%, transparent 55%, rgba(4, 8, 14, 0.55) 100%);
+    pointer-events: none;
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.035;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
   a { color: var(--teal); }
   :focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
 
@@ -49,8 +99,13 @@
     top: 50%; left: 50%;
     width: 480px; height: 480px;
     transform: translate(-50%, -50%);
-    opacity: 0.05;
+    opacity: 0.06;
     pointer-events: none;
+    animation: aperture-drift 120s linear infinite;
+  }
+  @keyframes aperture-drift {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to   { transform: translate(-50%, -50%) rotate(360deg); }
   }
   .eyebrow {
     font-family: 'IBM Plex Mono', monospace;
@@ -102,8 +157,17 @@
     background: var(--teal);
     margin-right: 6px;
     box-shadow: 0 0 6px var(--teal);
+    animation: dot-pulse 2.2s ease-in-out infinite;
   }
-  .status-bar .dot.off { background: var(--bad); box-shadow: 0 0 6px var(--bad); }
+  .status-bar .dot.off {
+    background: var(--bad);
+    box-shadow: 0 0 6px var(--bad);
+    animation: none;
+  }
+  @keyframes dot-pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--teal); }
+    50%      { opacity: 0.5; box-shadow: 0 0 11px var(--teal); }
+  }
 
   /* ---------- Layout ---------- */
   .container {
@@ -127,6 +191,7 @@
     border-radius: 4px;
     padding: 22px;
     position: relative;
+    box-shadow: 0 30px 60px -30px rgba(0,0,0,0.55);
   }
   .panel::before {
     content: '';
@@ -256,6 +321,14 @@
   #output th { background: var(--panel-raised); color: var(--teal); font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
   #output code { background: var(--ink); padding: 1px 6px; border-radius: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 0.9em; color: var(--teal); }
 
+  .stream-cursor {
+    display: inline-block;
+    color: var(--teal);
+    font-family: 'IBM Plex Mono', monospace;
+    animation: cursor-blink 0.9s step-end infinite;
+  }
+  @keyframes cursor-blink { 50% { opacity: 0; } }
+
   /* ---------- Aperture loader (signature element) ---------- */
   .aperture-loader {
     display: flex;
@@ -279,8 +352,16 @@
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
+
   @media (prefers-reduced-motion: reduce) {
-    .aperture-loader svg, .aperture-loader .blade { animation: none; }
+    .aperture-loader svg,
+    .aperture-loader .blade,
+    .status-bar .dot,
+    .aperture-watermark,
+    .bg-glow,
+    .stream-cursor {
+      animation: none;
+    }
   }
 
   footer {
@@ -301,6 +382,15 @@
 </style>
 </head>
 <body>
+
+<div class="bg-glow"></div>
+<svg class="grain" width="100%" height="100%">
+  <filter id="grainFilter">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" result="noise"/>
+    <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.4 0"/>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#grainFilter)"/>
+</svg>
 
 <header>
   <svg class="aperture-watermark" viewBox="0 0 200 200"><circle cx="100" cy="100" r="95" fill="none" stroke="#d1a054" stroke-width="1"/><circle cx="100" cy="100" r="75" fill="none" stroke="#d1a054" stroke-width="1"/><circle cx="100" cy="100" r="55" fill="none" stroke="#d1a054" stroke-width="1"/><circle cx="100" cy="100" r="35" fill="none" stroke="#d1a054" stroke-width="1"/></svg>
@@ -374,7 +464,6 @@
   const output = document.getElementById('output');
   const modelStatus = document.getElementById('modelStatus');
 
-  // Instrument status readout
   fetch(`${API_BASE}/api/health`).then(r => r.json()).then(data => {
     modelStatus.innerHTML = `<span class="dot"></span>${data.model || 'model unknown'}`;
   }).catch(() => {
@@ -402,7 +491,6 @@
     if (fileInput.files[0]) loadFile(fileInput.files[0]);
   });
 
-  // Drag & drop onto the textarea
   ['dragenter', 'dragover'].forEach(evt =>
     dataInput.addEventListener(evt, (e) => { e.preventDefault(); dataInput.classList.add('drag-over'); })
   );
@@ -480,6 +568,7 @@
           }
 
           if (payload.error) {
+            document.querySelector('.stream-cursor')?.remove();
             rawText += `\n\n**[Error: ${payload.error}]**`;
             liveOutput.innerHTML = marked.parse(rawText);
             requestStatus.textContent = 'Error during streaming.';
@@ -487,14 +576,19 @@
           } else if (payload.text) {
             rawText += payload.text;
             liveOutput.innerHTML = marked.parse(rawText);
+            document.querySelector('.stream-cursor')?.remove();
+            liveOutput.insertAdjacentHTML('beforeend', '<span class="stream-cursor">▍</span>');
           } else if (payload.done) {
+            document.querySelector('.stream-cursor')?.remove();
             requestStatus.textContent = 'In focus.';
           }
         }
       }
       document.querySelector('.aperture-loader')?.remove();
+      document.querySelector('.stream-cursor')?.remove();
     } catch (err) {
       document.querySelector('.aperture-loader')?.remove();
+      document.querySelector('.stream-cursor')?.remove();
       requestStatus.textContent = `Failed: ${err.message}`;
       requestStatus.classList.add('error');
       liveOutput.textContent = 'Something went wrong. Please check that the backend is running and try again.';
