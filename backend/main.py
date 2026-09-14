@@ -57,7 +57,7 @@ class AnalyzeRequest(BaseModel):
     question: str = ""      # optional user question, e.g. "any seasonality?"
 
 
-MAX_CHARS = 80000  # guard against oversized payloads
+MAX_CHARS = 200000  # guard against oversized payloads
 
 
 def sniff_and_summarize(data_text: str) -> tuple[str, int]:
